@@ -28,6 +28,12 @@ function run_markov_4ti2(path)
     if !success(proc)
         error = eof(err) ? "unknown error" : readchomp(err)
         throw("Failed to run markov: $error")
+    else
+        open("$(path).mar") do matrix_file
+            for line in eachline(matrix_file)
+                println(line)
+            end
+        end
     end
 end
 
@@ -39,7 +45,7 @@ function run_markov_polymake(path)
     Base.link_pipe!(out, reader_supports_async=true)
     Base.link_pipe!(err, reader_supports_async=true)
 
-    proc = run(pipeline(`/home/datastore/vecchia/repositories/polymake/perl/polymake --script $(path)`, stdin=in, stdout=out, stderr=err), wait=false)
+    proc = run(pipeline(`/usr/bin/perl  /home/antony/projects/polymake/perl/polymake --script /home/antony/projects/polymake-scripts/test_markov.pl $(path)`, stdin=in, stdout=out, stderr=err), wait=false)
 
     task = @async begin
         write(in, "")
@@ -59,4 +65,9 @@ function run_markov_polymake(path)
         error = eof(err) ? "unknown error" : readchomp(err)
         throw("Failed to run markov: $error")
     end
+end
+
+function benchmark(path)
+    run_markov_4ti2(path)
+    run_markov_polymake(path)
 end
